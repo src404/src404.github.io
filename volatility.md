@@ -1,0 +1,138 @@
+# 内存取证
+
+**附件：1.raw**
+
+**工具：volatility**
+
+题目没有给出任何提示，解压后用volatility打开
+
+```bash
+┌──(kali㉿kali)-[~/Documents/ctf/volatility_2.6_lin64_standalone]
+└─$ ./volatility -f ./1.raw imageinfo                                                                                                                                         1 ⨯
+Volatility Foundation Volatility Framework 2.6
+INFO    : volatility.debug    : Determining profile based on KDBG search...
+          Suggested Profile(s) : WinXPSP2x86, WinXPSP3x86 (Instantiated with WinXPSP2x86)
+                     AS Layer1 : IA32PagedMemoryPae (Kernel AS)
+                     AS Layer2 : FileAddressSpace (/home/kali/Documents/ctf/volatility_2.6_lin64_standalone/1.raw)
+                      PAE type : PAE
+                           DTB : 0x372000L
+                          KDBG : 0x80546ae0L
+          Number of Processors : 1
+     Image Type (Service Pack) : 3
+                KPCR for CPU 0 : 0xffdff000L
+             KUSER_SHARED_DATA : 0xffdf0000L
+           Image date and time : 2018-11-19 06:52:02 UTC+0000
+     Image local date and time : 2018-11-19 14:52:02 +0800
+
+```
+
+首先查看镜像信息，得到profile，后面需要附加上这个信息进行取证
+
+```bash
+┌──(kali㉿kali)-[~/Documents/ctf/volatility_2.6_lin64_standalone]
+└─$ ./volatility -f ./1.raw --profile=WinXPSP2x86 filescan | grep flag
+Volatility Foundation Volatility Framework 2.6
+```
+
+找不到有关flag的文件，这个结果其实不准确，因为用notepad++直接打开镜像文件搜索flag就能发现几个相关文件
+
+![image-20220518225318693](C:\Users\XR\AppData\Roaming\Typora\typora-user-images\image-20220518225318693.png)
+
+直接搜索字符串
+
+```bash
+┌──(kali㉿kali)-[~/Documents/ctf/volatility_2.6_lin64_standalone]
+└─$ ./volatility -f ./1.raw --profile=WinXPSP2x86 pslist                                                                                                                      1 ⨯
+Volatility Foundation Volatility Framework 2.6
+Offset(V)  Name                    PID   PPID   Thds     Hnds   Sess  Wow64 Start                          Exit                          
+---------- -------------------- ------ ------ ------ -------- ------ ------ ------------------------------ ------------------------------
+0x82352490 System                    4      0     56      511 ------      0
+0x81e10928 smss.exe                584      4      3       19 ------      0 2018-11-19 06:37:31 UTC+0000
+0x821e17b8 csrss.exe               648    584     11      434      0      0 2018-11-19 06:37:34 UTC+0000
+0x8212f410 winlogon.exe            672    584     18      456      0      0 2018-11-19 06:37:34 UTC+0000
+0x81df9928 services.exe            716    672     15      281      0      0 2018-11-19 06:37:35 UTC+0000
+0x820b7da0 lsass.exe               728    672     20      354      0      0 2018-11-19 06:37:35 UTC+0000
+0x822881f8 vmacthlp.exe            888    716      1       25      0      0 2018-11-19 06:37:35 UTC+0000
+0x8228b5f8 svchost.exe             904    716     16      192      0      0 2018-11-19 06:37:35 UTC+0000
+0x81d95390 svchost.exe             960    716      9      260      0      0 2018-11-19 06:37:35 UTC+0000
+0x82238560 svchost.exe            1104    716     63     1262      0      0 2018-11-19 06:37:35 UTC+0000
+0x81fcdad8 svchost.exe            1204    716      4       75      0      0 2018-11-19 06:37:35 UTC+0000
+0x81c80b10 svchost.exe            1368    716     13      193      0      0 2018-11-19 06:37:36 UTC+0000
+0x81da42a8 spoolsv.exe            1488    716     12      175      0      0 2018-11-19 06:37:37 UTC+0000
+0x81df9da0 WVSScheduler.ex        1600    716     29      168      0      0 2018-11-19 06:37:45 UTC+0000
+0x81df88e0 svchost.exe            1728    716      4       84      0      0 2018-11-19 06:37:46 UTC+0000
+0x81e0d728 inetinfo.exe           1844    716     11      218      0      0 2018-11-19 06:37:46 UTC+0000
+0x81d9bda0 jqs.exe                1860    716      5      144      0      0 2018-11-19 06:37:46 UTC+0000
+0x821d3da0 metsvc.exe             1880    716      2       36      0      0 2018-11-19 06:37:46 UTC+0000
+0x81da7488 VenusAutoUpdate         380    716      2       46      0      0 2018-11-19 06:37:49 UTC+0000
+0x81e0b478 vmtoolsd.exe            420    716      5      263      0      0 2018-11-19 06:37:50 UTC+0000
+0x82083b98 VMUpgradeHelper         484    716      3       96      0      0 2018-11-19 06:37:50 UTC+0000
+0x81f84b98 alg.exe                1996    716      5      103      0      0 2018-11-19 06:37:51 UTC+0000
+0x81c6c990 explorer.exe           1804   1360     10      324      0      0 2018-11-19 06:38:56 UTC+0000
+0x81f6c6e8 VMwareTray.exe          200   1804      1       58      0      0 2018-11-19 06:38:58 UTC+0000
+0x820b5380 VMwareUser.exe          212   1804      4      169      0      0 2018-11-19 06:38:58 UTC+0000
+0x81c9b668 jusched.exe             220   1804      1       93      0      0 2018-11-19 06:38:58 UTC+0000
+0x81f62990 nc.exe                  228   1804      1       43      0      0 2018-11-19 06:38:59 UTC+0000
+0x8224fb98 rundll32.exe            232   1804      4       78      0      0 2018-11-19 06:38:59 UTC+0000
+0x81c97da0 ctfmon.exe              480   1804      1       71      0      0 2018-11-19 06:38:59 UTC+0000
+0x82250588 conime.exe              324    228      1       38      0      0 2018-11-19 06:39:00 UTC+0000
+0x820936b0 cmd.exe                 924   1804      1       32      0      0 2018-11-19 06:39:24 UTC+0000
+0x820d0990 wmiprvse.exe           2216    904      5      130      0      0 2018-11-19 06:41:51 UTC+0000           0x8215f0d8 jucheck.exe            2420    220      4      224      0      0 2018-11-19 06:44:01 UTC+0000
+0x81ca5a20 notepad.exe            3000    924      1       44      0      0 2018-11-19 06:50:46 UTC+0000          
+0x8216a590 DumpIt.exe             3112   1804      1       16      0      0 2018-11-19 06:51:59 UTC+0000 
+```
+
+最后一个DumpIt进程看起来很可疑，可以把它导出来之后用strings命令搜索相关字符串
+
+```bash
+┌──(kali㉿kali)-[~/Documents/ctf/volatility_2.6_lin64_standalone]
+└─$ ./volatility -f ./1.raw --profile=WinXPSP2x86 memdump -p 3112 -D ./                                                                                                     127 ⨯
+Volatility Foundation Volatility Framework 2.6
+************************************************************************
+Writing DumpIt.exe [  3112] to 3112.dmp
+                                                                                                                                                                                  
+┌──(kali㉿kali)-[~/Documents/ctf/volatility_2.6_lin64_standalone]
+└─$ strings 3112.dmp | grep flag 
+SXS: %s() Bad flags/size 0x%lx/0x%lx
+Invalid flags (%08x) specified to RtlCreateHeap
+SXS: %s() called with invalid flags 0x%08lx
+Invalid flags (%08x) specified to RtlCreateHeap
+eflags
+DrvGetDirectDrawInfo: Overlay flags set
+log vmx_fb: DrvGetDirectDrawInfo: Overlay flags set
+flags
+flags
+flags
+flags
+flags
+flags/
+A driver has set both the DO_BUFFERED_IO and the DO_DIRECT_IO flags. These flags are mutually exclusive (DevObj = %DevObj).
+A driver has not copied either the DO_BUFFERED_IO or the DO_DIRECT_IO flag from the device object it is attaching to (DevObj = %DevObj).
+A driver has failed to clear the DO_DEVICE_INITIALIZING flag at the end of AddDevice (DevObj = %DevObj).
+flag.txt
+\flag.txt
+flag{3661386562366162333565313332396130373363313239656230356332636566}
+flag.zip
+flag.txt
+flag.lnk
+flag (2).lnk
+flag.lnk
+flag (2).lnk
+flag.zip
+E:\flag.zip
+Fragmentation Failures is the number of IP datagrams that were discarded because they needed to be fragmented at but could not be (for example, because the `Don't Fragment' flag was set).
+Optional array of flags permitting the user to specify additional semantics for associated INSERT commands. Flags are ignored for DELETE and UPDATE commands. A flag and an update command are associated when they have the same index in their respective arrays.
+flag.txt
+flag.lnk
+flag (2).lnk
+flag.lnk
+TermDD: Exception code=%08x, flags=%08x, addr=%p, IP=%p
+ flags=%lx  
+Bad frag[%d]: rre2[%d] rre[%d].flags = 0x%x
+```
+
+其中有一串字符串十分可疑，但并不是真正的flag，需要转ascii码之后才是真正的flag
+
+![image-20220518230301809](C:\Users\XR\AppData\Roaming\Typora\typora-user-images\image-20220518230301809.png)
+
+**正确答案：6a8eb6ab35e1329a073c129eb05c2cef**
