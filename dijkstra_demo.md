@@ -75,3 +75,13 @@
   
 
 **所以从A到S的最短距离为66** *(该路径不唯一)*
+
+
+
+**参考资料**
+
+---
+
+> [蓝桥杯python历届真题总结(持续更新)_AI AX AT的博客-CSDN博客_蓝桥杯python历年真题](https://blog.csdn.net/weixin_45758642/article/details/122737444)
+>
+> [【算法】最短路径查找—Dijkstra算法_哔哩哔哩_bilibili](https://www.bilibili.com/video/BV1zz4y1m7Nq)
